@@ -31,6 +31,9 @@
       'main.subtitle.market-analysis': 'Live pricing indices and demand signals for merchants.',
       'sidebar.utilities': 'Utilities',
       'sidebar.nav.social': 'Social Feed',
+      'sidebar.nav.sovereignty': 'Nation Protocol',
+      'main.title.sovereignty': 'Sovereign Nation Protocol',
+      'main.subtitle.sovereignty': 'Digital constitution, citizen legislation, and peer judicial arbitrage.',
       'sidebar.nav.market': 'Village Market',
       'sidebar.nav.marketplace': 'Marketplace',
       'sidebar.nav.pay': 'Village Pay',
@@ -318,6 +321,7 @@
     pay: 'pay-page',
     market: 'market-page',
     'market-analysis': 'marketAnalysisView',
+    'sovereignty': 'dashboard-view',
     'pay-inline': 'payView'
   };
 
@@ -388,6 +392,10 @@
 
     if (global.VillageModules && global.VillageModules[viewKey] && typeof global.VillageModules[viewKey].activate === 'function') {
       global.VillageModules[viewKey].activate();
+    }
+
+    if (viewKey === 'sovereignty' && typeof global.initializeDashboard === 'function') {
+      global.initializeDashboard();
     }
 
     console.log('[VillageViewManager] Activated view:', viewKey, '→', panelId);
@@ -1058,12 +1066,46 @@
   }
 
   function initCitizenSovereignty() {
-    if (!global.CitizenState) return Promise.resolve();
-    return global.CitizenState.hydrate().then(function () {
-      if (global.CitizenLedger) return global.CitizenLedger.open();
-    }).then(function () {
-      global.CitizenState.syncCitizenTags();
+    function finishSovereigntyBoot() {
+      if (global.CitizenState) global.CitizenState.syncCitizenTags();
+      if (global.DigitalNationCore && typeof global.DigitalNationCore.hydrate === 'function') {
+        global.DigitalNationCore.hydrate();
+      }
+      if (typeof global.initializeDashboard === 'function') {
+        global.initializeDashboard();
+      }
       console.log('[VillageApp] Citizen sovereignty engine online.');
+    }
+
+    function hydrateCitizen() {
+      if (!global.CitizenState) return Promise.resolve();
+      return global.CitizenState.hydrate().then(function () {
+        if (global.CitizenLedger) return global.CitizenLedger.open();
+      });
+    }
+
+    if (global.DigitalNationCore) {
+      return hydrateCitizen().then(finishSovereigntyBoot);
+    }
+
+    return new Promise(function (resolve) {
+      document.addEventListener('digital-nation:ready', function onReady() {
+        document.removeEventListener('digital-nation:ready', onReady);
+        hydrateCitizen().then(function () {
+          finishSovereigntyBoot();
+          resolve();
+        });
+      });
+      setTimeout(function () {
+        if (global.DigitalNationCore) {
+          hydrateCitizen().then(function () {
+            finishSovereigntyBoot();
+            resolve();
+          });
+        } else {
+          hydrateCitizen().then(resolve);
+        }
+      }, 120);
     });
   }
 
