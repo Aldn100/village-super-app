@@ -76,7 +76,7 @@
   function saveWalletSnapshot(citizenId, snapshot) {
     var record = Object.assign({ citizenId: citizenId, updatedAt: Date.now() }, snapshot);
     if (!db) {
-      try { localStorage.setItem('village_ledger_wallet_' + citizenId, JSON.stringify(record)); } catch (e) { /* noop */ }
+      try { VillageStorage.setItem('village_ledger_wallet_' + citizenId, JSON.stringify(record)); } catch (e) { /* noop */ }
       return Promise.resolve(record);
     }
     return new Promise(function (resolve, reject) {
@@ -89,7 +89,7 @@
   function getWalletSnapshot(citizenId) {
     if (!db) {
       try {
-        var raw = localStorage.getItem('village_ledger_wallet_' + citizenId);
+        var raw = VillageStorage.getItem('village_ledger_wallet_' + citizenId);
         return Promise.resolve(raw ? JSON.parse(raw) : null);
       } catch (e) {
         return Promise.resolve(null);
@@ -118,7 +118,7 @@
     if (!db) {
       try {
         var key = 'village_peer_' + node.nodeId;
-        localStorage.setItem(key, JSON.stringify(node));
+        VillageStorage.setItem(key, JSON.stringify(node));
       } catch (e) { /* noop */ }
       return Promise.resolve(node);
     }
@@ -132,7 +132,7 @@
   function getPeerNode(nodeId) {
     if (!db) {
       try {
-        var raw = localStorage.getItem('village_peer_' + nodeId);
+        var raw = VillageStorage.getItem('village_peer_' + nodeId);
         return Promise.resolve(raw ? JSON.parse(raw) : null);
       } catch (e) {
         return Promise.resolve(null);
@@ -148,20 +148,20 @@
   function mirrorLedgerToLocalStorage(record) {
     try {
       var key = 'village_ledger_mirror';
-      var list = JSON.parse(localStorage.getItem(key) || '[]');
+      var list = JSON.parse(VillageStorage.getItem(key) || '[]');
       list.unshift(record);
       if (list.length > 500) list.length = 500;
-      localStorage.setItem(key, JSON.stringify(list));
+      VillageStorage.setItem(key, JSON.stringify(list));
     } catch (e) { /* noop */ }
   }
 
   function mirrorRouteToLocalStorage(route) {
     try {
       var key = 'village_p2p_routes_mirror';
-      var list = JSON.parse(localStorage.getItem(key) || '[]');
+      var list = JSON.parse(VillageStorage.getItem(key) || '[]');
       list.unshift(route);
       if (list.length > 200) list.length = 200;
-      localStorage.setItem(key, JSON.stringify(list));
+      VillageStorage.setItem(key, JSON.stringify(list));
     } catch (e) { /* noop */ }
   }
 

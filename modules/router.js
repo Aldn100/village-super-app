@@ -36,6 +36,10 @@
     chat: {
       title: 'Messages',
       subtitle: 'Encrypted one-on-one and group conversations between citizens.'
+    },
+    sovereignty: {
+      title: 'Sovereign Nation Protocol',
+      subtitle: 'Digital constitution, citizen legislation, and peer judicial arbitrage.'
     }
   };
 

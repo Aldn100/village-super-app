@@ -9,5 +9,6 @@
     }
   };
 
+  global.VillageChat = global.VillageModules.chat;
   console.log('[VillageChat] Module registered.');
 })(window);

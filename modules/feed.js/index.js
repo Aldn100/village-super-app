@@ -9,5 +9,6 @@
     }
   };
 
+  global.VillageFeed = global.VillageModules.social;
   console.log('[VillageFeed] Module registered.');
 })(window);

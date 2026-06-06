@@ -9,14 +9,14 @@
 
   function loadPeerRegistry() {
     try {
-      return JSON.parse(localStorage.getItem(PEER_REGISTRY_KEY) || '{}');
+      return JSON.parse(VillageStorage.getItem(PEER_REGISTRY_KEY) || '{}');
     } catch (e) {
       return {};
     }
   }
 
   function savePeerRegistry(registry) {
-    try { localStorage.setItem(PEER_REGISTRY_KEY, JSON.stringify(registry)); } catch (e) { /* noop */ }
+    try { VillageStorage.setItem(PEER_REGISTRY_KEY, JSON.stringify(registry)); } catch (e) { /* noop */ }
   }
 
   function mockHash(input) {

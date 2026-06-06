@@ -15,5 +15,14 @@
     }
   };
 
+  global.VillageMarket = {
+    marketplace: global.VillageModules.marketplace,
+    market: global.VillageModules.market,
+    activate: function (view) {
+      var mod = view === 'market' ? global.VillageModules.market : global.VillageModules.marketplace;
+      if (mod && typeof mod.activate === 'function') mod.activate();
+    }
+  };
+
   console.log('[VillageMarket] Module registered.');
 })(window);

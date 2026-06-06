@@ -9,5 +9,6 @@
     }
   };
 
+  global.VillageJobs = global.VillageModules.jobs;
   console.log('[VillageJobs] Module registered.');
 })(window);

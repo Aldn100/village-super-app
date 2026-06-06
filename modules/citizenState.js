@@ -41,7 +41,7 @@
 
   function resolveLocaleCurrency() {
     try {
-      var stored = localStorage.getItem('village_global_currency');
+      var stored = VillageStorage.getItem('village_global_currency');
       if (stored) return stored;
     } catch (e) { /* noop */ }
     var locale = (global.navigator && global.navigator.language) ? global.navigator.language.toUpperCase() : 'EN-US';
@@ -55,7 +55,7 @@
 
   function loadFromStorage() {
     try {
-      var raw = localStorage.getItem(STATE_KEY);
+      var raw = VillageStorage.getItem(STATE_KEY);
       if (raw) return JSON.parse(raw);
     } catch (e) { /* noop */ }
     return null;
@@ -63,7 +63,7 @@
 
   function persist() {
     if (!state) return;
-    try { localStorage.setItem(STATE_KEY, JSON.stringify(state)); } catch (e) { /* noop */ }
+    try { VillageStorage.setItem(STATE_KEY, JSON.stringify(state)); } catch (e) { /* noop */ }
     document.dispatchEvent(new CustomEvent('citizen:state-changed', { detail: { citizen: getCurrent() } }));
   }
 
@@ -130,7 +130,7 @@
 
   function setCurrency(code) {
     update({ currency: code });
-    try { localStorage.setItem('village_global_currency', code); } catch (e) { /* noop */ }
+    try { VillageStorage.setItem('village_global_currency', code); } catch (e) { /* noop */ }
     if (global.VillageCurrency && typeof global.VillageCurrency.set === 'function') {
       global.VillageCurrency.set(code, { silent: true });
     }

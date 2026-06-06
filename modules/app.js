@@ -486,7 +486,7 @@
     currentLang = code;
     document.documentElement.lang = code;
     document.documentElement.dir = code === 'ar' ? 'rtl' : 'ltr';
-    try { localStorage.setItem(STORAGE_KEY, code); } catch (e) { /* noop */ }
+    try { VillageStorage.setItem(STORAGE_KEY, code); } catch (e) { /* noop */ }
     applyTranslations();
     if (global.VillageRouter && global.VillageRouter.syncViewCopy) {
       global.VillageRouter.syncViewCopy();
@@ -495,7 +495,7 @@
 
   function loadStoredLanguage() {
     try {
-      var stored = localStorage.getItem(STORAGE_KEY);
+      var stored = VillageStorage.getItem(STORAGE_KEY);
       if (stored && SUPPORTED.indexOf(stored) !== -1) return stored;
     } catch (e) { /* noop */ }
     return 'en';
@@ -668,7 +668,7 @@
       return global.CitizenState.getCurrency();
     }
     try {
-      var stored = localStorage.getItem(CURRENCY_STORAGE_KEY);
+      var stored = VillageStorage.getItem(CURRENCY_STORAGE_KEY);
       if (stored) return stored;
     } catch (e) { /* noop */ }
     return 'USD';
@@ -878,7 +878,7 @@
       if (citizenCur && getCurrencyByCode(citizenCur)) return citizenCur;
     }
     try {
-      var stored = localStorage.getItem(CURRENCY_STORAGE_KEY);
+      var stored = VillageStorage.getItem(CURRENCY_STORAGE_KEY);
       if (stored && getCurrencyByCode(stored)) return stored;
     } catch (e) { /* ignore */ }
     return resolveSovereignDefaultCurrency();
@@ -1026,7 +1026,7 @@
     var c = getCurrencyByCode(code);
     if (!c) return;
     currentCurrency = c.code;
-    try { localStorage.setItem(CURRENCY_STORAGE_KEY, currentCurrency); } catch (e) { /* ignore */ }
+    try { VillageStorage.setItem(CURRENCY_STORAGE_KEY, currentCurrency); } catch (e) { /* ignore */ }
     if (global.CitizenState && typeof global.CitizenState.setCurrency === 'function') {
       global.CitizenState.setCurrency(currentCurrency);
     }

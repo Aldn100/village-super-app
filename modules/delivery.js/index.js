@@ -9,5 +9,6 @@
     }
   };
 
+  global.VillageDelivery = global.VillageModules.delivery;
   console.log('[VillageDelivery] Module registered.');
 })(window);
