@@ -10578,6 +10578,18 @@
     var acceptVillageExpressJob = window.acceptVillageExpressJob;
 
     (function () {
+      if (!window.VillageStorage) {
+        window.VillageStorage = {
+          getItem: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+          setItem: function (k, v) { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } },
+          removeItem: function (k) { try { localStorage.removeItem(k); return true; } catch (e) { return false; } },
+          getSessionItem: function (k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } },
+          setSessionItem: function (k, v) { try { sessionStorage.setItem(k, v); return true; } catch (e) { return false; } },
+          removeSessionItem: function (k) { try { sessionStorage.removeItem(k); return true; } catch (e) { return false; } },
+          clearSession: function () { try { sessionStorage.clear(); return true; } catch (e) { return false; } }
+        };
+      }
+
       var appState = {
         isLoggedIn: false,
         isOnboarded: false,
@@ -11910,6 +11922,19 @@
         authGateEl.classList.remove('auth-gate--hidden');
         authGateEl.setAttribute('aria-hidden', 'false');
         initAuthGateContainer();
+      }
+
+      /* Bootstrap auth before feed/composer init — prevents mid-script errors from blocking login */
+      if (!window._villageAppBootstrapScheduled) {
+        window._villageAppBootstrapScheduled = true;
+        function runVillageAppBootstrap() {
+          if (typeof initVillageApp === 'function') initVillageApp();
+        }
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', runVillageAppBootstrap);
+        } else {
+          setTimeout(runVillageAppBootstrap, 0);
+        }
       }
 
       /* ══ Account Status & Privacy Management ══ */
@@ -16771,22 +16796,34 @@
         observeFeedVideos();
       }
 
-      publishBtn.addEventListener('click', publishPost);
-      initComposerMediaUpload();
-      initLongVideoUpload();
-
-      composerTypeTabs.forEach(function (tab) {
-        tab.addEventListener('click', function () {
-          switchComposerType(tab.getAttribute('data-composer-type'));
-        });
-      });
-
-      postInput.addEventListener('keydown', function (event) {
-        if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
-          event.preventDefault();
-          publishPost();
+      var feedComposerControlsBound = false;
+      function initFeedComposerControls() {
+        if (feedComposerControlsBound) return;
+        feedComposerControlsBound = true;
+        try {
+          if (publishBtn) publishBtn.addEventListener('click', publishPost);
+          if (typeof initComposerMediaUpload === 'function') initComposerMediaUpload();
+          if (typeof initLongVideoUpload === 'function') initLongVideoUpload();
+          composerTypeTabs.forEach(function (tab) {
+            tab.addEventListener('click', function () {
+              switchComposerType(tab.getAttribute('data-composer-type'));
+            });
+          });
+          if (postInput) {
+            postInput.addEventListener('keydown', function (event) {
+              if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+                event.preventDefault();
+                publishPost();
+              }
+            });
+          }
+        } catch (composerErr) {
+          console.warn('[VillageFeed] Composer media init skipped:', composerErr && composerErr.message ? composerErr.message : composerErr);
         }
-      });
+      }
+      window.initComposerMediaUpload = initComposerMediaUpload;
+      window.initLongVideoUpload = initLongVideoUpload;
+      window.initFeedComposerControls = initFeedComposerControls;
 
       loadTrustStorage();
       ensureVillageOfficialFollowing();
@@ -20074,6 +20111,7 @@
         if (typeof initVillageSolanaConnection === 'function') initVillageSolanaConnection();
         resetAccountFlaggedState();
         initAuthGate();
+        if (typeof initFeedComposerControls === 'function') initFeedComposerControls();
         initUserProfile();
         initKycModal();
         initAccountControls();
@@ -20559,11 +20597,6 @@
       window.submitPaySwap = submitPaySwap;
       window.villagePayAmountToTzs = villagePayAmountToTzs;
 
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initVillageApp);
-      } else {
-        initVillageApp();
-      }
     })();
   </script>
 </body>

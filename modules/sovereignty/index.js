@@ -128,7 +128,11 @@ export var DigitalNationCore = {
         }
         return;
       }
-      localStorage.setItem(STORAGE_KEY, payload);
+      try {
+        localStorage.setItem(STORAGE_KEY, payload);
+      } catch (storageErr) {
+        console.error('[SovereigntyCore] Storage access blocked by browser privacy settings.');
+      }
     } catch (e) {
       console.error('[SovereigntyCore] Storage access blocked by browser privacy settings.');
     }
