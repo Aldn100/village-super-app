@@ -12,13 +12,6 @@ function storageGet(key) {
   } catch (e) { return null; }
 }
 
-function storageSet(key, value) {
-  try {
-    var store = (typeof globalThis !== 'undefined' && globalThis.VillageStorage) || (typeof window !== 'undefined' && window.VillageStorage);
-    return store ? store.setItem(key, value) : false;
-  } catch (e) { return false; }
-}
-
 function loadState() {
   try {
     var raw = storageGet(STORAGE_KEY);
@@ -123,10 +116,22 @@ export var DigitalNationCore = {
   },
 
   saveSovereignState: function () {
-    storageSet(STORAGE_KEY, JSON.stringify({
-      proposals: this.governance.activeProposals,
-      disputes: this.judiciary.disputes
-    }));
+    try {
+      var store = (typeof globalThis !== 'undefined' && globalThis.VillageStorage) || (typeof window !== 'undefined' && window.VillageStorage);
+      var payload = JSON.stringify({
+        proposals: this.governance.activeProposals,
+        disputes: this.judiciary.disputes
+      });
+      if (store) {
+        if (!store.setItem(STORAGE_KEY, payload)) {
+          console.error('[SovereigntyCore] Storage access blocked by browser privacy settings.');
+        }
+        return;
+      }
+      localStorage.setItem(STORAGE_KEY, payload);
+    } catch (e) {
+      console.error('[SovereigntyCore] Storage access blocked by browser privacy settings.');
+    }
   }
 };
 
