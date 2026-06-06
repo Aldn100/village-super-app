@@ -8554,7 +8554,7 @@
         <h2 class="village-auth-heading">Welcome Back</h2>
         <p class="village-auth-subheading">Sign in to continue to Village</p>
         <form id="authLoginForm" class="village-auth-form" novalidate>
-          <div class="village-auth-field"><label for="authLoginEmail">Email, Username, or Phone</label><input type="text" id="authLoginEmail" autocomplete="username" placeholder="you@village.app"></div>
+          <div class="village-auth-field"><label for="authLoginEmail">Citizen ID, Email, or Phone</label><input type="text" id="authLoginEmail" autocomplete="username" placeholder="citizen@village.nation"></div>
           <div class="village-auth-field"><label for="authLoginPassword">Password</label><input type="password" id="authLoginPassword" autocomplete="current-password" placeholder="????????"></div>
           <label class="village-auth-checkbox"><input type="checkbox" id="authRememberDevice"><span>Remember Me</span></label>
           <button type="submit" class="village-auth-btn village-auth-btn--primary" id="authLoginBtn">Sign In</button>
@@ -8619,7 +8619,7 @@
           <input type="file" id="authProfileAvatarInput" accept="image/*" hidden>
         </div>
         <form id="authProfileForm" class="village-auth-form" novalidate>
-          <div class="village-auth-field"><label for="authProfileUsername">Username</label><input type="text" id="authProfileUsername" autocomplete="username" placeholder="amina_okonkwo"></div>
+          <div class="village-auth-field"><label for="authProfileUsername">Citizen Handle</label><input type="text" id="authProfileUsername" autocomplete="username" placeholder="citizen_handle"></div>
           <div class="village-auth-field"><label for="authProfileBio">Bio</label><textarea id="authProfileBio" rows="3"></textarea></div>
           <div class="village-auth-field"><label for="authProfileLanguage">Preferred Language</label><select id="authProfileLanguage"><option value="en">English</option><option value="sw">Kiswahili</option><option value="fr">French</option><option value="ar">Arabic</option><option value="es">Spanish</option><option value="pt">Portuguese</option><option value="zh">Chinese</option></select></div>
           <label class="village-auth-checkbox"><input type="checkbox" id="authProfileNotifications" checked><span>Enable notifications (optional)</span></label>
@@ -9061,6 +9061,10 @@
             <option value="pt">Português</option>
           </select>
         </div>
+        <div class="global-currency-selector">
+          <label class="global-currency-selector__label" for="global-currency-select" data-i18n="nav.currency">Currency</label>
+          <select id="global-currency-select" class="global-currency-selector__select" aria-label="Select display currency"></select>
+        </div>
         <a href="#" class="topnav__link topnav__link--profile" id="profileNavLink">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
           <span data-i18n="nav.profile">Profile</span>
@@ -9151,10 +9155,10 @@
         <ul class="sidebar-recommendations__list" id="sidebarRecommendationsList"></ul>
       </div>
 
-      <div class="sidebar__user-card">
-        <p data-i18n="sidebar.signedInAs">Signed in as</p>
-        <strong class="user-name-display" id="sidebarUserName" data-user-name-display="current-user">Amina Okonkwo</strong>
-        <span id="sidebarUserRole" data-user-role-display="current-user">Citizen | Dar es Salaam, TZ</span>
+      <div class="sidebar__user-card sidebar__citizen-card">
+        <p data-i18n="sidebar.signedInAs">Citizen node active as</p>
+        <strong class="user-name-display citizen-name-display" id="sidebarCitizenName" data-citizen-name-display="current-citizen" data-user-name-display="current-user">Citizen</strong>
+        <span class="citizen-id-tag" id="sidebarCitizenRole" data-citizen-role-display="current-citizen" data-user-role-display="current-user">Citizen | Sovereign Node</span>
         <button type="button" class="sidebar__edit-profile" id="editProfileBtn" aria-label="Edit profile">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
           <span data-i18n="sidebar.editProfile">Edit Profile</span>
@@ -9750,9 +9754,9 @@
 
           <section class="village-pay__hero" id="payWalletHero" aria-label="Wallet balances">
             <p class="village-pay__hero-label">Available Balance</p>
-            <p class="village-pay__hero-amount" id="payWalletFiatBalance">?</p>
+            <p class="village-pay__hero-amount citizen-currency-output" id="payWalletFiatBalance">?</p>
             <p class="village-pay__hero-meta" id="payWalletSolBalance">? 0.000000 SOL</p>
-            <p class="village-pay__hero-meta" id="payWalletCurrencyHint">TZS ? live rates</p>
+            <p class="village-pay__hero-meta citizen-currency-output" id="payWalletCurrencyHint">Live sovereign rates</p>
           </section>
 
           <div class="village-pay__actions-bar" role="toolbar" aria-label="Wallet actions">
@@ -9783,7 +9787,7 @@
               <h3 class="village-pay-action-panel__title">?? Send Money</h3>
               <p class="village-pay-action-panel__desc">1% governance fee routes to Solana treasury on send.</p>
               <div class="village-pay-action-panel__field">
-                <label for="paySendRecipient">Recipient Username / Wallet</label>
+                <label for="paySendRecipient">Recipient Citizen Handle / Wallet</label>
                 <input type="text" id="paySendRecipient" class="village-pay-action-panel__input" placeholder="@citizen or wallet address">
               </div>
               <div class="village-pay-action-panel__field">
@@ -10223,7 +10227,7 @@
     </div>
   </div>
 
-  <!-- User Profile Modal -->
+  <!-- Citizen Profile Modal -->
   <div class="share-modal" id="userProfileModal" aria-hidden="true" role="presentation">
     <div class="share-modal__backdrop" id="userProfileBackdrop"></div>
     <div class="share-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="userProfileModalName">
@@ -10521,12 +10525,16 @@
   </div>
 
   <script src="modules/credentialsValidator.js"></script>
+  <script src="modules/citizenLedger.js"></script>
+  <script src="modules/citizenState.js"></script>
+  <script src="modules/p2pWalletRouter.js"></script>
   <script src="modules/router.js"></script>
   <script src="modules/feed.js/index.js"></script>
   <script src="modules/market.js/index.js"></script>
   <script src="modules/chat.js/index.js"></script>
   <script src="modules/delivery.js/index.js"></script>
   <script src="modules/jobs.js/index.js"></script>
+  <script src="modules/wallet.js/index.js"></script>
   <script src="modules/app.js"></script>
   <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.js"></script>
   <script>
@@ -10910,7 +10918,12 @@
           showVillagePayPage: showVillagePayPage,
           dismissVillagePayShell: dismissVillagePayShell,
           toggleSidebar: toggleSidebar,
-          getAccountProfileType: function () { return accountProfileType; },
+          getAccountProfileType: function () {
+            if (window.CitizenState && typeof window.CitizenState.getProfileType === 'function') {
+              return window.CitizenState.getProfileType();
+            }
+            return accountProfileType;
+          },
           showToast: showToast
         });
       } else {
@@ -18504,7 +18517,8 @@
 
       function onMarketGlobalCurrencyChange(currency) {
         var cur = currency || 'TZS';
-        if (typeof VILLAGE_MARKET_FX_FROM_TZS !== 'undefined' && !VILLAGE_MARKET_FX_FROM_TZS[cur]) cur = 'TZS';
+        var rates = typeof getActiveMarketFxRates === 'function' ? getActiveMarketFxRates() : {};
+        if (!rates[cur] && !(VILLAGE_MARKET_FX_FALLBACK && VILLAGE_MARKET_FX_FALLBACK[cur]) && cur !== 'TZS') cur = 'TZS';
         villageMarketState.currency = cur;
         if (window.VillageAppSettings) {
           VillageAppSettings.currency = cur;
@@ -19077,7 +19091,12 @@
         select.value = saved;
         select.addEventListener('change', function () {
           var cur = select.value || 'TZS';
-          if (!VILLAGE_MARKET_FX[cur]) cur = 'TZS';
+          var rates = typeof getActiveMarketFxRates === 'function' ? getActiveMarketFxRates() : {};
+          if (!rates[cur] && !(VILLAGE_MARKET_FX_FALLBACK && VILLAGE_MARKET_FX_FALLBACK[cur]) && cur !== 'TZS') cur = 'TZS';
+          if (window.VillageCurrency && typeof window.VillageCurrency.set === 'function') {
+            window.VillageCurrency.set(cur, { silent: true });
+            return;
+          }
           villageMarketState.currency = cur;
           if (window.VillageAppSettings) {
             VillageAppSettings.currency = cur;
@@ -19815,7 +19834,10 @@
       }
 
       window.VILLAGE_MARKET_FX = VILLAGE_MARKET_FX;
+      window.VILLAGE_MARKET_FX_FROM_TZS = VILLAGE_MARKET_FX_FROM_TZS;
+      window.VILLAGE_MARKET_FX_FALLBACK = VILLAGE_MARKET_FX_FALLBACK;
       window.CURRENCY_SYMBOLS = CURRENCY_SYMBOLS;
+      window.onMarketGlobalCurrencyChange = onMarketGlobalCurrencyChange;
       window.convertMarketPrice = convertMarketPrice;
       window.formatMarketPrice = formatMarketPrice;
       window.renderMarketCheckoutSettlement = renderMarketCheckoutSettlement;
@@ -19931,8 +19953,9 @@
 
       function formatVillagePayCurrency(amount, currency) {
         var cur = currency || getVillagePayDisplayCurrency();
-        var sym = cur === 'USD' ? '$' : (cur === 'TZS' ? 'TZS ' : cur + ' ');
-        var val = Number(amount || 0).toLocaleString('en', { minimumFractionDigits: cur === 'USD' ? 2 : 0, maximumFractionDigits: cur === 'USD' ? 2 : 0 });
+        var sym = (CURRENCY_SYMBOLS && CURRENCY_SYMBOLS[cur]) || (cur === 'USD' ? '$' : (cur === 'TZS' ? 'TZS ' : cur + ' '));
+        var dec = (cur === 'USD' || cur === 'EUR' || cur === 'GBP' || cur === 'CHF' || cur === 'CAD' || cur === 'AUD' || cur === 'NZD' || cur === 'SGD' || cur === 'HKD') ? 2 : 0;
+        var val = Number(amount || 0).toLocaleString('en', { minimumFractionDigits: dec, maximumFractionDigits: dec });
         return sym + val;
       }
 
@@ -20203,12 +20226,32 @@
         setPaySubmitLoading(btn, spin, true);
         setTimeout(function () {
           var cur = getVillagePayDisplayCurrency();
-          villagePayState.fiatBalanceTzs -= villagePayAmountToTzs(amount, cur);
-          allocatePlatformGovernanceFee(amount, cur, 'Manual wallet transfer ? ' + String(recip.value).trim());
-          renderPayWalletHero();
-          setPaySubmitLoading(btn, spin, false);
-          if (input) input.value = '';
-          showToast('Transfer sent successfully');
+          var amountTzs = villagePayAmountToTzs(amount, cur);
+          var recipient = String(recip.value).trim();
+          var finalize = function (routeLabel) {
+            villagePayState.fiatBalanceTzs -= amountTzs;
+            allocatePlatformGovernanceFee(amount, cur, routeLabel || ('P2P transfer → ' + recipient));
+            renderPayWalletHero();
+            setPaySubmitLoading(btn, spin, false);
+            if (input) input.value = '';
+            if (window.VillageWallet && typeof window.VillageWallet.persistSnapshot === 'function') {
+              window.VillageWallet.persistSnapshot();
+            }
+            showToast('P2P transfer settled locally');
+          };
+          if (window.P2PWalletRouter && typeof window.P2PWalletRouter.routePeerExchange === 'function') {
+            window.P2PWalletRouter.routePeerExchange({
+              recipient: recipient,
+              amountTzs: amountTzs,
+              currency: cur
+            }).then(function (route) {
+              finalize('P2P route ' + route.routeId + ' → ' + recipient);
+            }).catch(function () {
+              finalize('Manual wallet transfer → ' + recipient);
+            });
+            return;
+          }
+          finalize('Manual wallet transfer → ' + recipient);
         }, 1500);
       }
 
@@ -20285,6 +20328,10 @@
       window.renderPayWalletHero = renderPayWalletHero;
       window.renderPayTreasuryTracker = renderPayTreasuryTracker;
       window.renderPayEscrowLedger = renderPayEscrowLedger;
+      window.submitPayDeposit = submitPayDeposit;
+      window.submitPaySend = submitPaySend;
+      window.submitPaySwap = submitPaySwap;
+      window.villagePayAmountToTzs = villagePayAmountToTzs;
 
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initVillageApp);

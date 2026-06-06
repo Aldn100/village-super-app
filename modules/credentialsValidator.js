@@ -1,10 +1,8 @@
 /**
- * Village credentials validator — local test bypass for dev pipelines.
+ * Village credentials validator — sovereign citizen local authentication.
  */
 (function (global) {
   'use strict';
-
-  var BYPASS_KEY = '123456';
 
   function getFields() {
     return {
@@ -38,6 +36,15 @@
     err.hidden = false;
   }
 
+  function validateLocalCitizen(identifier, password) {
+    if (!global.CitizenState) return false;
+    var citizen = global.CitizenState.getCurrent();
+    if (!citizen || !citizen.onboarded) return false;
+    var id = String(identifier || '').trim().toLowerCase();
+    var handle = String(citizen.handle || '').trim().toLowerCase();
+    return (id === handle || id === String(citizen.citizenId).toLowerCase()) && String(password || '').length >= 6;
+  }
+
   function validate(credentials) {
     var fields = getFields();
     var emailVal = (credentials && credentials.email != null)
@@ -49,37 +56,39 @@
 
     clearFieldErrors(fields);
 
-    console.log('[VillageCredentials] Validating sign-in credentials…');
-    console.log('[VillageCredentials] Identifier provided:', emailVal ? 'yes' : 'no');
-
-    if (passwordVal === BYPASS_KEY) {
-      console.log('[VillageCredentials] Bypass key accepted — local test pipeline unlocked.');
-      return true;
-    }
+    console.log('[VillageCredentials] Validating sovereign citizen credentials…');
 
     var ok = true;
 
     if (!emailVal) {
-      setFieldError(fields.email, 'Email, username, or phone is required');
+      setFieldError(fields.email, 'Citizen ID, email, or phone is required');
       ok = false;
     }
 
     if (!passwordVal) {
-      setFieldError(fields.password, 'Password is required');
+      setFieldError(fields.password, 'Passphrase is required');
+      ok = false;
+    } else if (passwordVal.length < 6) {
+      setFieldError(fields.password, 'Passphrase must be at least 6 characters');
       ok = false;
     }
 
     if (!ok) {
       console.log('[VillageCredentials] Validation failed — missing required fields.');
-    } else {
-      console.log('[VillageCredentials] Validation passed.');
+      return false;
     }
 
-    return ok;
+    if (validateLocalCitizen(emailVal, passwordVal)) {
+      console.log('[VillageCredentials] Local citizen ledger credentials accepted.');
+      return true;
+    }
+
+    console.log('[VillageCredentials] Credential format valid — awaiting citizen onboarding binding.');
+    return true;
   }
 
   global.VillageCredentials = {
-    BYPASS_KEY: BYPASS_KEY,
-    validate: validate
+    validate: validate,
+    validateLocalCitizen: validateLocalCitizen
   };
 })(window);

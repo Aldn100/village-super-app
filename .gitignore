@@ -1,0 +1,9 @@
+# Block local system environment tracking
+.cursor/
+.vscode/
+*.log
+Thumbs.db
+.DS_Store
+
+# Block local execution paths
+modules/.env

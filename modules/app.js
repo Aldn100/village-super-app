@@ -1,5 +1,5 @@
 /**
- * Village App — i18n engine, top navigation wiring, and bootstrap.
+ * Village App — sovereign citizen i18n, navigation, and decentralized bootstrap.
  */
 (function (global) {
   'use strict';
@@ -12,14 +12,15 @@
     en: {
       'nav.home': 'Home',
       'nav.messages': 'Messages',
-      'nav.wallet': 'Wallet',
       'nav.profile': 'Profile',
       'nav.language': 'Language',
+      'nav.currency': 'Currency',
+      'nav.wallet': 'Citizen Wallet',
       'search.placeholder': 'Search citizens, products, services',
       'main.title.social': 'Your Village Feed',
       'main.subtitle.social': 'Connect, share, and discover — all in one global super-app.',
       'main.title.marketplace': 'Village Marketplace',
-      'main.subtitle.marketplace': 'Buy and sell across your community — prices in TZS or USD by region.',
+      'main.subtitle.marketplace': 'Peer-to-peer commerce across sovereign citizen nodes — prices in your chosen fiat.',
       'main.title.chat': 'Messages',
       'main.subtitle.chat': 'Encrypted one-on-one and group conversations.',
       'main.title.jobs': 'Village Jobs',
@@ -38,7 +39,7 @@
       'sidebar.nav.marketAnalysis': 'Market Analysis',
       'sidebar.nav.messages': 'Messages',
       'sidebar.personalizedFeed': 'Personalized Feed',
-      'sidebar.signedInAs': 'Signed in as',
+      'sidebar.signedInAs': 'Citizen node active as',
       'sidebar.editProfile': 'Edit Profile',
       'sidebar.accountVisibility': 'Account Visibility',
       'sidebar.public': 'Public',
@@ -55,6 +56,7 @@
       'nav.wallet': 'Mkoba',
       'nav.profile': 'Wasifu',
       'nav.language': 'Lugha',
+      'nav.currency': 'Sarafu',
       'search.placeholder': 'Tafuta raia, bidhaa, huduma',
       'main.title.social': 'Mlisho wa Kijiji Chako',
       'main.subtitle.social': 'Unganisha, shiriki, na gundua — yote katika programu moja ya kimataifa.',
@@ -95,6 +97,7 @@
       'nav.wallet': 'Billetera',
       'nav.profile': 'Perfil',
       'nav.language': 'Idioma',
+      'nav.currency': 'Moneda',
       'search.placeholder': 'Buscar ciudadanos, productos, servicios',
       'main.title.social': 'Tu feed de Village',
       'main.subtitle.social': 'Conecta, comparte y descubre — todo en una super-app global.',
@@ -135,6 +138,7 @@
       'nav.wallet': 'Portefeuille',
       'nav.profile': 'Profil',
       'nav.language': 'Langue',
+      'nav.currency': 'Devise',
       'search.placeholder': 'Rechercher citoyens, produits, services',
       'main.title.social': 'Votre fil Village',
       'main.subtitle.social': 'Connectez, partagez et découvrez — tout dans une super-app mondiale.',
@@ -175,6 +179,7 @@
       'nav.wallet': 'Wallet',
       'nav.profile': 'Profil',
       'nav.language': 'Sprache',
+      'nav.currency': 'Währung',
       'search.placeholder': 'Bürger, Produkte, Dienste suchen',
       'main.title.social': 'Dein Village-Feed',
       'main.subtitle.social': 'Verbinden, teilen und entdecken — alles in einer globalen Super-App.',
@@ -215,6 +220,7 @@
       'nav.wallet': 'المحفظة',
       'nav.profile': 'الملف الشخصي',
       'nav.language': 'اللغة',
+      'nav.currency': 'العملة',
       'search.placeholder': 'ابحث عن المواطنين والمنتجات والخدمات',
       'main.title.social': 'خلاصة القرية الخاصة بك',
       'main.subtitle.social': 'تواصل وشارك واكتشف — كل ذلك في تطبيق عالمي واحد.',
@@ -255,6 +261,7 @@
       'nav.wallet': 'Carteira',
       'nav.profile': 'Perfil',
       'nav.language': 'Idioma',
+      'nav.currency': 'Moeda',
       'search.placeholder': 'Pesquisar cidadãos, produtos, serviços',
       'main.title.social': 'Seu feed Village',
       'main.subtitle.social': 'Conecte, compartilhe e descubra — tudo em um super-app global.',
@@ -502,14 +509,26 @@
   }
 
   function syncProfileDropdownMeta() {
-    var nameSrc = document.getElementById('sidebarUserName');
-    var roleSrc = document.getElementById('sidebarUserRole');
+    if (global.CitizenState && typeof global.CitizenState.syncCitizenTags === 'function') {
+      global.CitizenState.syncCitizenTags();
+    }
+    var nameSrc = document.getElementById('sidebarCitizenName') || document.getElementById('sidebarUserName');
+    var roleSrc = document.getElementById('sidebarCitizenRole') || document.getElementById('sidebarUserRole');
     var avatarSrc = document.getElementById('topnavAvatar');
     var nameDst = document.getElementById('topnavDropdownName');
     var roleDst = document.getElementById('topnavDropdownRole');
     var avatarDst = document.getElementById('topnavDropdownAvatar');
-    if (nameSrc && nameDst) nameDst.textContent = nameSrc.textContent;
-    if (roleSrc && roleDst) roleDst.textContent = roleSrc.textContent;
+    if (global.CitizenState) {
+      var citizen = global.CitizenState.getCurrent();
+      if (nameDst) nameDst.textContent = citizen.displayName || 'Citizen';
+      if (roleDst) {
+        var roleLabel = citizen.profileType === 'merchant' ? 'Merchant' : 'Citizen';
+        roleDst.textContent = roleLabel + ' | ' + (citizen.location || citizen.countryCode || 'Sovereign Node');
+      }
+    } else {
+      if (nameSrc && nameDst) nameDst.textContent = nameSrc.textContent;
+      if (roleSrc && roleDst) roleDst.textContent = roleSrc.textContent;
+    }
     if (avatarSrc && avatarDst) avatarDst.src = avatarSrc.src;
   }
 
@@ -634,6 +653,420 @@
   }
 
   /* ── Global country registry (ISO 3166-1 alpha-2, alphabetical) ── */
+  var CURRENCY_STORAGE_KEY = 'village_global_currency';
+
+  function resolveSovereignDefaultCurrency() {
+    if (global.CitizenState && typeof global.CitizenState.getCurrency === 'function') {
+      return global.CitizenState.getCurrency();
+    }
+    try {
+      var stored = localStorage.getItem(CURRENCY_STORAGE_KEY);
+      if (stored) return stored;
+    } catch (e) { /* noop */ }
+    return 'USD';
+  }
+
+  var VILLAGE_DEFAULT_CURRENCY = 'USD';
+  var currentCurrency = VILLAGE_DEFAULT_CURRENCY;
+
+  var VILLAGE_FIAT_CURRENCIES = [
+    { code: 'AED', name: 'UAE Dirham', symbol: 'AED ', region: 'Middle East', decimals: 2 },
+    { code: 'AFN', name: 'Afghan Afghani', symbol: 'AFN ', region: 'Asia', decimals: 0 },
+    { code: 'ALL', name: 'Albanian Lek', symbol: 'L ', region: 'Europe', decimals: 0 },
+    { code: 'AMD', name: 'Armenian Dram', symbol: 'AMD ', region: 'Asia', decimals: 0 },
+    { code: 'ANG', name: 'Netherlands Antillean Guilder', symbol: 'ANG ', region: 'Americas', decimals: 2 },
+    { code: 'AOA', name: 'Angolan Kwanza', symbol: 'Kz ', region: 'Africa', decimals: 0 },
+    { code: 'ARS', name: 'Argentine Peso', symbol: 'ARS ', region: 'South America', decimals: 2 },
+    { code: 'AUD', name: 'Australian Dollar', symbol: 'A$', region: 'Oceania', decimals: 2 },
+    { code: 'AWG', name: 'Aruban Florin', symbol: 'AWG ', region: 'Americas', decimals: 2 },
+    { code: 'AZN', name: 'Azerbaijani Manat', symbol: 'AZN ', region: 'Asia', decimals: 2 },
+    { code: 'BAM', name: 'Bosnia-Herzegovina Mark', symbol: 'KM ', region: 'Europe', decimals: 2 },
+    { code: 'BBD', name: 'Barbadian Dollar', symbol: 'BBD ', region: 'Americas', decimals: 2 },
+    { code: 'BDT', name: 'Bangladeshi Taka', symbol: 'BDT ', region: 'Asia', decimals: 0 },
+    { code: 'BGN', name: 'Bulgarian Lev', symbol: 'BGN ', region: 'Europe', decimals: 2 },
+    { code: 'BHD', name: 'Bahraini Dinar', symbol: 'BHD ', region: 'Middle East', decimals: 3 },
+    { code: 'BIF', name: 'Burundian Franc', symbol: 'BIF ', region: 'East Africa', decimals: 0 },
+    { code: 'BMD', name: 'Bermudian Dollar', symbol: 'BMD ', region: 'Americas', decimals: 2 },
+    { code: 'BND', name: 'Brunei Dollar', symbol: 'BND ', region: 'Asia', decimals: 2 },
+    { code: 'BOB', name: 'Bolivian Boliviano', symbol: 'BOB ', region: 'South America', decimals: 2 },
+    { code: 'BRL', name: 'Brazilian Real', symbol: 'R$', region: 'South America', decimals: 2 },
+    { code: 'BSD', name: 'Bahamian Dollar', symbol: 'BSD ', region: 'Americas', decimals: 2 },
+    { code: 'BTN', name: 'Bhutanese Ngultrum', symbol: 'BTN ', region: 'Asia', decimals: 0 },
+    { code: 'BWP', name: 'Botswana Pula', symbol: 'P ', region: 'Southern Africa', decimals: 2 },
+    { code: 'BYN', name: 'Belarusian Ruble', symbol: 'BYN ', region: 'Europe', decimals: 2 },
+    { code: 'BZD', name: 'Belize Dollar', symbol: 'BZD ', region: 'Americas', decimals: 2 },
+    { code: 'CAD', name: 'Canadian Dollar', symbol: 'C$', region: 'Americas', decimals: 2 },
+    { code: 'CDF', name: 'Congolese Franc', symbol: 'CDF ', region: 'Africa', decimals: 0 },
+    { code: 'CHF', name: 'Swiss Franc', symbol: 'CHF ', region: 'Europe', decimals: 2 },
+    { code: 'CLP', name: 'Chilean Peso', symbol: 'CLP ', region: 'South America', decimals: 0 },
+    { code: 'CNY', name: 'Chinese Yuan', symbol: '\u00A5', region: 'Asia', decimals: 2 },
+    { code: 'COP', name: 'Colombian Peso', symbol: 'COP ', region: 'South America', decimals: 0 },
+    { code: 'CRC', name: 'Costa Rican Colón', symbol: 'CRC ', region: 'Americas', decimals: 0 },
+    { code: 'CUP', name: 'Cuban Peso', symbol: 'CUP ', region: 'Americas', decimals: 2 },
+    { code: 'CVE', name: 'Cape Verdean Escudo', symbol: 'CVE ', region: 'Africa', decimals: 0 },
+    { code: 'CZK', name: 'Czech Koruna', symbol: 'CZK ', region: 'Europe', decimals: 0 },
+    { code: 'DJF', name: 'Djiboutian Franc', symbol: 'DJF ', region: 'East Africa', decimals: 0 },
+    { code: 'DKK', name: 'Danish Krone', symbol: 'DKK ', region: 'Europe', decimals: 2 },
+    { code: 'DOP', name: 'Dominican Peso', symbol: 'DOP ', region: 'Americas', decimals: 2 },
+    { code: 'DZD', name: 'Algerian Dinar', symbol: 'DZD ', region: 'Africa', decimals: 0 },
+    { code: 'EGP', name: 'Egyptian Pound', symbol: 'EGP ', region: 'Africa', decimals: 2 },
+    { code: 'ERN', name: 'Eritrean Nakfa', symbol: 'ERN ', region: 'East Africa', decimals: 0 },
+    { code: 'ETB', name: 'Ethiopian Birr', symbol: 'ETB ', region: 'East Africa', decimals: 0 },
+    { code: 'EUR', name: 'Euro', symbol: '\u20AC', region: 'Europe', decimals: 2 },
+    { code: 'FJD', name: 'Fijian Dollar', symbol: 'FJD ', region: 'Oceania', decimals: 2 },
+    { code: 'FKP', name: 'Falkland Islands Pound', symbol: 'FKP ', region: 'Americas', decimals: 2 },
+    { code: 'GBP', name: 'British Pound', symbol: '\u00A3', region: 'Europe', decimals: 2 },
+    { code: 'GEL', name: 'Georgian Lari', symbol: 'GEL ', region: 'Asia', decimals: 2 },
+    { code: 'GHS', name: 'Ghanaian Cedi', symbol: 'GHS ', region: 'West Africa', decimals: 2 },
+    { code: 'GIP', name: 'Gibraltar Pound', symbol: 'GIP ', region: 'Europe', decimals: 2 },
+    { code: 'GMD', name: 'Gambian Dalasi', symbol: 'GMD ', region: 'West Africa', decimals: 0 },
+    { code: 'GNF', name: 'Guinean Franc', symbol: 'GNF ', region: 'West Africa', decimals: 0 },
+    { code: 'GTQ', name: 'Guatemalan Quetzal', symbol: 'GTQ ', region: 'Americas', decimals: 2 },
+    { code: 'GYD', name: 'Guyanese Dollar', symbol: 'GYD ', region: 'South America', decimals: 0 },
+    { code: 'HKD', name: 'Hong Kong Dollar', symbol: 'HK$', region: 'Asia', decimals: 2 },
+    { code: 'HNL', name: 'Honduran Lempira', symbol: 'HNL ', region: 'Americas', decimals: 2 },
+    { code: 'HTG', name: 'Haitian Gourde', symbol: 'HTG ', region: 'Americas', decimals: 0 },
+    { code: 'HUF', name: 'Hungarian Forint', symbol: 'HUF ', region: 'Europe', decimals: 0 },
+    { code: 'IDR', name: 'Indonesian Rupiah', symbol: 'Rp ', region: 'Asia', decimals: 0 },
+    { code: 'ILS', name: 'Israeli New Shekel', symbol: '\u20AA', region: 'Middle East', decimals: 2 },
+    { code: 'INR', name: 'Indian Rupee', symbol: '\u20B9', region: 'Asia', decimals: 2 },
+    { code: 'IQD', name: 'Iraqi Dinar', symbol: 'IQD ', region: 'Middle East', decimals: 0 },
+    { code: 'IRR', name: 'Iranian Rial', symbol: 'IRR ', region: 'Middle East', decimals: 0 },
+    { code: 'ISK', name: 'Icelandic Króna', symbol: 'ISK ', region: 'Europe', decimals: 0 },
+    { code: 'JMD', name: 'Jamaican Dollar', symbol: 'JMD ', region: 'Americas', decimals: 2 },
+    { code: 'JOD', name: 'Jordanian Dinar', symbol: 'JOD ', region: 'Middle East', decimals: 3 },
+    { code: 'JPY', name: 'Japanese Yen', symbol: '\u00A5', region: 'Asia', decimals: 0 },
+    { code: 'KES', name: 'Kenyan Shilling', symbol: 'KSh ', region: 'East Africa', decimals: 0 },
+    { code: 'KGS', name: 'Kyrgyzstani Som', symbol: 'KGS ', region: 'Asia', decimals: 0 },
+    { code: 'KHR', name: 'Cambodian Riel', symbol: 'KHR ', region: 'Asia', decimals: 0 },
+    { code: 'KMF', name: 'Comorian Franc', symbol: 'KMF ', region: 'East Africa', decimals: 0 },
+    { code: 'KRW', name: 'South Korean Won', symbol: '\u20A9', region: 'Asia', decimals: 0 },
+    { code: 'KWD', name: 'Kuwaiti Dinar', symbol: 'KWD ', region: 'Middle East', decimals: 3 },
+    { code: 'KYD', name: 'Cayman Islands Dollar', symbol: 'KYD ', region: 'Americas', decimals: 2 },
+    { code: 'KZT', name: 'Kazakhstani Tenge', symbol: 'KZT ', region: 'Asia', decimals: 0 },
+    { code: 'LAK', name: 'Lao Kip', symbol: 'LAK ', region: 'Asia', decimals: 0 },
+    { code: 'LBP', name: 'Lebanese Pound', symbol: 'LBP ', region: 'Middle East', decimals: 0 },
+    { code: 'LKR', name: 'Sri Lankan Rupee', symbol: 'LKR ', region: 'Asia', decimals: 0 },
+    { code: 'LRD', name: 'Liberian Dollar', symbol: 'LRD ', region: 'West Africa', decimals: 0 },
+    { code: 'LSL', name: 'Lesotho Loti', symbol: 'LSL ', region: 'Southern Africa', decimals: 2 },
+    { code: 'LYD', name: 'Libyan Dinar', symbol: 'LYD ', region: 'Africa', decimals: 3 },
+    { code: 'MAD', name: 'Moroccan Dirham', symbol: 'MAD ', region: 'Africa', decimals: 2 },
+    { code: 'MDL', name: 'Moldovan Leu', symbol: 'MDL ', region: 'Europe', decimals: 2 },
+    { code: 'MGA', name: 'Malagasy Ariary', symbol: 'MGA ', region: 'East Africa', decimals: 0 },
+    { code: 'MKD', name: 'Macedonian Denar', symbol: 'MKD ', region: 'Europe', decimals: 0 },
+    { code: 'MMK', name: 'Myanmar Kyat', symbol: 'MMK ', region: 'Asia', decimals: 0 },
+    { code: 'MNT', name: 'Mongolian Tögrög', symbol: 'MNT ', region: 'Asia', decimals: 0 },
+    { code: 'MOP', name: 'Macanese Pataca', symbol: 'MOP ', region: 'Asia', decimals: 2 },
+    { code: 'MRU', name: 'Mauritanian Ouguiya', symbol: 'MRU ', region: 'West Africa', decimals: 0 },
+    { code: 'MUR', name: 'Mauritian Rupee', symbol: 'MUR ', region: 'East Africa', decimals: 0 },
+    { code: 'MVR', name: 'Maldivian Rufiyaa', symbol: 'MVR ', region: 'Asia', decimals: 2 },
+    { code: 'MWK', name: 'Malawian Kwacha', symbol: 'MWK ', region: 'East Africa', decimals: 0 },
+    { code: 'MXN', name: 'Mexican Peso', symbol: 'MX$', region: 'Americas', decimals: 2 },
+    { code: 'MYR', name: 'Malaysian Ringgit', symbol: 'MYR ', region: 'Asia', decimals: 2 },
+    { code: 'MZN', name: 'Mozambican Metical', symbol: 'MZN ', region: 'East Africa', decimals: 0 },
+    { code: 'NAD', name: 'Namibian Dollar', symbol: 'NAD ', region: 'Southern Africa', decimals: 2 },
+    { code: 'NGN', name: 'Nigerian Naira', symbol: '\u20A6', region: 'West Africa', decimals: 0 },
+    { code: 'NIO', name: 'Nicaraguan Córdoba', symbol: 'NIO ', region: 'Americas', decimals: 2 },
+    { code: 'NOK', name: 'Norwegian Krone', symbol: 'NOK ', region: 'Europe', decimals: 2 },
+    { code: 'NPR', name: 'Nepalese Rupee', symbol: 'NPR ', region: 'Asia', decimals: 0 },
+    { code: 'NZD', name: 'New Zealand Dollar', symbol: 'NZ$', region: 'Oceania', decimals: 2 },
+    { code: 'OMR', name: 'Omani Rial', symbol: 'OMR ', region: 'Middle East', decimals: 3 },
+    { code: 'PAB', name: 'Panamanian Balboa', symbol: 'PAB ', region: 'Americas', decimals: 2 },
+    { code: 'PEN', name: 'Peruvian Sol', symbol: 'PEN ', region: 'South America', decimals: 2 },
+    { code: 'PGK', name: 'Papua New Guinean Kina', symbol: 'PGK ', region: 'Oceania', decimals: 2 },
+    { code: 'PHP', name: 'Philippine Peso', symbol: '\u20B1', region: 'Asia', decimals: 2 },
+    { code: 'PKR', name: 'Pakistani Rupee', symbol: 'PKR ', region: 'Asia', decimals: 0 },
+    { code: 'PLN', name: 'Polish Złoty', symbol: 'PLN ', region: 'Europe', decimals: 2 },
+    { code: 'PYG', name: 'Paraguayan Guaraní', symbol: 'PYG ', region: 'South America', decimals: 0 },
+    { code: 'QAR', name: 'Qatari Riyal', symbol: 'QAR ', region: 'Middle East', decimals: 2 },
+    { code: 'RON', name: 'Romanian Leu', symbol: 'RON ', region: 'Europe', decimals: 2 },
+    { code: 'RSD', name: 'Serbian Dinar', symbol: 'RSD ', region: 'Europe', decimals: 0 },
+    { code: 'RUB', name: 'Russian Ruble', symbol: '\u20BD', region: 'Europe', decimals: 2 },
+    { code: 'RWF', name: 'Rwandan Franc', symbol: 'RWF ', region: 'East Africa', decimals: 0 },
+    { code: 'SAR', name: 'Saudi Riyal', symbol: 'SAR ', region: 'Middle East', decimals: 2 },
+    { code: 'SBD', name: 'Solomon Islands Dollar', symbol: 'SBD ', region: 'Oceania', decimals: 2 },
+    { code: 'SCR', name: 'Seychellois Rupee', symbol: 'SCR ', region: 'East Africa', decimals: 0 },
+    { code: 'SDG', name: 'Sudanese Pound', symbol: 'SDG ', region: 'Africa', decimals: 0 },
+    { code: 'SEK', name: 'Swedish Krona', symbol: 'SEK ', region: 'Europe', decimals: 2 },
+    { code: 'SGD', name: 'Singapore Dollar', symbol: 'S$', region: 'Asia', decimals: 2 },
+    { code: 'SHP', name: 'Saint Helena Pound', symbol: 'SHP ', region: 'Africa', decimals: 2 },
+    { code: 'SLE', name: 'Sierra Leonean Leone', symbol: 'SLE ', region: 'West Africa', decimals: 0 },
+    { code: 'SOS', name: 'Somali Shilling', symbol: 'SOS ', region: 'East Africa', decimals: 0 },
+    { code: 'SRD', name: 'Surinamese Dollar', symbol: 'SRD ', region: 'South America', decimals: 2 },
+    { code: 'SSP', name: 'South Sudanese Pound', symbol: 'SSP ', region: 'East Africa', decimals: 0 },
+    { code: 'STN', name: 'São Tomé and Príncipe Dobra', symbol: 'STN ', region: 'Africa', decimals: 2 },
+    { code: 'SVC', name: 'Salvadoran Colón', symbol: 'SVC ', region: 'Americas', decimals: 2 },
+    { code: 'SYP', name: 'Syrian Pound', symbol: 'SYP ', region: 'Middle East', decimals: 0 },
+    { code: 'SZL', name: 'Swazi Lilangeni', symbol: 'SZL ', region: 'Southern Africa', decimals: 2 },
+    { code: 'THB', name: 'Thai Baht', symbol: '\u0E3F', region: 'Asia', decimals: 2 },
+    { code: 'TJS', name: 'Tajikistani Somoni', symbol: 'TJS ', region: 'Asia', decimals: 2 },
+    { code: 'TMT', name: 'Turkmenistani Manat', symbol: 'TMT ', region: 'Asia', decimals: 2 },
+    { code: 'TND', name: 'Tunisian Dinar', symbol: 'TND ', region: 'Africa', decimals: 3 },
+    { code: 'TOP', name: 'Tongan Paʻanga', symbol: 'TOP ', region: 'Oceania', decimals: 2 },
+    { code: 'TRY', name: 'Turkish Lira', symbol: '\u20BA', region: 'Europe', decimals: 2 },
+    { code: 'TTD', name: 'Trinidad and Tobago Dollar', symbol: 'TTD ', region: 'Americas', decimals: 2 },
+    { code: 'TWD', name: 'New Taiwan Dollar', symbol: 'NT$', region: 'Asia', decimals: 0 },
+    { code: 'TZS', name: 'Tanzanian Shilling', symbol: 'TZS ', region: 'East Africa', decimals: 0 },
+    { code: 'UAH', name: 'Ukrainian Hryvnia', symbol: '\u20B4', region: 'Europe', decimals: 2 },
+    { code: 'UGX', name: 'Ugandan Shilling', symbol: 'USh ', region: 'East Africa', decimals: 0 },
+    { code: 'USD', name: 'US Dollar', symbol: '$', region: 'International', decimals: 2 },
+    { code: 'UYU', name: 'Uruguayan Peso', symbol: 'UYU ', region: 'South America', decimals: 2 },
+    { code: 'UZS', name: 'Uzbekistani Som', symbol: 'UZS ', region: 'Asia', decimals: 0 },
+    { code: 'VES', name: 'Venezuelan Bolívar', symbol: 'VES ', region: 'South America', decimals: 2 },
+    { code: 'VND', name: 'Vietnamese Đồng', symbol: '\u20AB', region: 'Asia', decimals: 0 },
+    { code: 'VUV', name: 'Vanuatu Vatu', symbol: 'VUV ', region: 'Oceania', decimals: 0 },
+    { code: 'WST', name: 'Samoan Tala', symbol: 'WST ', region: 'Oceania', decimals: 2 },
+    { code: 'XAF', name: 'Central African CFA Franc', symbol: 'FCFA ', region: 'Central Africa', decimals: 0 },
+    { code: 'XCD', name: 'East Caribbean Dollar', symbol: 'XCD ', region: 'Americas', decimals: 2 },
+    { code: 'XOF', name: 'West African CFA Franc', symbol: 'CFA ', region: 'West Africa', decimals: 0 },
+    { code: 'XPF', name: 'CFP Franc', symbol: 'XPF ', region: 'Oceania', decimals: 0 },
+    { code: 'YER', name: 'Yemeni Rial', symbol: 'YER ', region: 'Middle East', decimals: 0 },
+    { code: 'ZAR', name: 'South African Rand', symbol: 'R ', region: 'Southern Africa', decimals: 2 },
+    { code: 'ZMW', name: 'Zambian Kwacha', symbol: 'ZMW ', region: 'East Africa', decimals: 0 },
+    { code: 'ZWL', name: 'Zimbabwean Dollar', symbol: 'ZWL ', region: 'East Africa', decimals: 0 }
+  ];
+
+  var VILLAGE_CURRENCY_FX_FALLBACK = {
+    USD: 1, AED: 3.67, AFN: 71.5, ALL: 94.2, AMD: 387, ANG: 1.79, AOA: 830, ARS: 890, AUD: 1.52,
+    AWG: 1.79, AZN: 1.7, BAM: 1.8, BBD: 2, BDT: 110, BGN: 1.8, BHD: 0.376, BIF: 2850, BMD: 1, BND: 1.34,
+    BOB: 6.91, BRL: 5.05, BSD: 1, BTN: 83.2, BWP: 13.6, BYN: 3.27, BZD: 2, CAD: 1.36, CDF: 2750, CHF: 0.9,
+    CLP: 940, CNY: 7.24, COP: 3950, CRC: 520, CUP: 24, CVE: 101, CZK: 23.1, DJF: 177.7, DKK: 6.87, DOP: 58.5,
+    DZD: 134, EGP: 47.5, ERN: 15, ETB: 57.2, EUR: 0.92, FJD: 2.25, FKP: 0.79, GBP: 0.79, GEL: 2.7, GHS: 14.8,
+    GIP: 0.79, GMD: 67.5, GNF: 8600, GTQ: 7.8, GYD: 209, HKD: 7.82, HNL: 24.7, HTG: 132, HUF: 360, IDR: 15800,
+    ILS: 3.7, INR: 83.2, IQD: 1310, IRR: 42000, ISK: 138, JMD: 155, JOD: 0.709, JPY: 157, KES: 129, KGS: 89,
+    KHR: 4100, KMF: 453, KRW: 1370, KWD: 0.307, KYD: 0.83, KZT: 450, LAK: 21000, LBP: 89500, LKR: 300,
+    LRD: 190, LSL: 18.5, LYD: 4.82, MAD: 10.1, MDL: 17.8, MGA: 4500, MKD: 56.5, MMK: 2100, MNT: 3400,
+    MOP: 8.05, MRU: 39.5, MUR: 46, MVR: 15.4, MWK: 1700, MXN: 17.1, MYR: 4.72, MZN: 63.8, NAD: 18.5, NGN: 1550,
+    NIO: 36.6, NOK: 10.6, NPR: 133, NZD: 1.64, OMR: 0.385, PAB: 1, PEN: 3.75, PGK: 3.9, PHP: 56.5, PKR: 278,
+    PLN: 4, PYG: 7300, QAR: 3.64, RON: 4.58, RSD: 108, RUB: 92, RWF: 1300, SAR: 3.75, SBD: 8.4, SCR: 13.5,
+    SDG: 600, SEK: 10.5, SGD: 1.35, SHP: 0.79, SLE: 22.5, SOS: 570, SRD: 36, SSP: 1300, STN: 22.5, SVC: 8.75,
+    SYP: 13000, SZL: 18.5, THB: 36.5, TJS: 10.9, TMT: 3.5, TND: 3.12, TOP: 2.35, TRY: 32.5, TTD: 6.78,
+    TWD: 32.2, TZS: 2600, UAH: 40.5, UGX: 3700, UYU: 39, UZS: 12600, VES: 36.5, VND: 25400, VUV: 119,
+    WST: 2.7, XAF: 603, XCD: 2.7, XOF: 603, XPF: 110, YER: 250, ZAR: 18.5, ZMW: 27, ZWL: 322
+  };
+
+  var currencyByCode = {};
+  VILLAGE_FIAT_CURRENCIES.forEach(function (c) {
+    currencyByCode[c.code] = c;
+  });
+
+  function getCurrencyByCode(code) {
+    return currencyByCode[code] || null;
+  }
+
+  function getCurrencySymbol(code) {
+    var c = getCurrencyByCode(code);
+    return c ? c.symbol : (code + ' ');
+  }
+
+  function getCurrencyDecimals(code) {
+    var c = getCurrencyByCode(code);
+    return c ? c.decimals : 2;
+  }
+
+  function loadStoredCurrency() {
+    if (global.CitizenState && typeof global.CitizenState.getCurrency === 'function') {
+      var citizenCur = global.CitizenState.getCurrency();
+      if (citizenCur && getCurrencyByCode(citizenCur)) return citizenCur;
+    }
+    try {
+      var stored = localStorage.getItem(CURRENCY_STORAGE_KEY);
+      if (stored && getCurrencyByCode(stored)) return stored;
+    } catch (e) { /* ignore */ }
+    return resolveSovereignDefaultCurrency();
+  }
+
+  function buildFxFromTzs() {
+    var tzsPerUsd = VILLAGE_CURRENCY_FX_FALLBACK.TZS || 2600;
+    var out = { TZS: 1 };
+    Object.keys(VILLAGE_CURRENCY_FX_FALLBACK).forEach(function (code) {
+      if (code === 'TZS') return;
+      var usdRate = VILLAGE_CURRENCY_FX_FALLBACK[code];
+      if (usdRate) out[code] = tzsPerUsd / usdRate;
+    });
+    return out;
+  }
+
+  function buildSymbolsMap() {
+    var map = {};
+    VILLAGE_FIAT_CURRENCIES.forEach(function (c) {
+      map[c.code] = c.symbol;
+    });
+    return map;
+  }
+
+  function mergeFxExtensions() {
+    var symbols = buildSymbolsMap();
+    if (global.CURRENCY_SYMBOLS) Object.assign(global.CURRENCY_SYMBOLS, symbols);
+    if (global.VILLAGE_MARKET_FX_FALLBACK) {
+      Object.assign(global.VILLAGE_MARKET_FX_FALLBACK, VILLAGE_CURRENCY_FX_FALLBACK);
+    } else {
+      global.VILLAGE_MARKET_FX_FALLBACK = Object.assign({}, VILLAGE_CURRENCY_FX_FALLBACK);
+    }
+    var fromTzs = buildFxFromTzs();
+    if (global.VILLAGE_MARKET_FX_FROM_TZS) Object.assign(global.VILLAGE_MARKET_FX_FROM_TZS, fromTzs);
+    if (global.VILLAGE_MARKET_FX) Object.assign(global.VILLAGE_MARKET_FX, fromTzs);
+    if (global.liveExchangeRates && !global.liveExchangeRatesReady) {
+      Object.assign(global.liveExchangeRates, VILLAGE_CURRENCY_FX_FALLBACK);
+    }
+  }
+
+  function convertTzsToCurrencyLocal(amountTzs, targetCode) {
+    var amount = Number(amountTzs || 0);
+    var target = targetCode || currentCurrency;
+    if (target === 'TZS') return amount;
+    var rates = (global.liveExchangeRatesReady && global.liveExchangeRates) ? global.liveExchangeRates : VILLAGE_CURRENCY_FX_FALLBACK;
+    if (typeof global.getActiveMarketFxRates === 'function') rates = global.getActiveMarketFxRates();
+    var tzsRate = rates.TZS || VILLAGE_CURRENCY_FX_FALLBACK.TZS;
+    var targetRate = rates[target] || VILLAGE_CURRENCY_FX_FALLBACK[target];
+    if (!tzsRate || !targetRate) return amount;
+    return (amount / tzsRate) * targetRate;
+  }
+
+  function formatAmountForCurrency(amountTzs, code) {
+    if (typeof global.formatMarketPrice === 'function') {
+      var full = global.formatMarketPrice(amountTzs, code || currentCurrency);
+      var sym = getCurrencySymbol(code || currentCurrency);
+      if (full.indexOf(sym) === 0) return full.slice(sym.length).trim();
+      return full;
+    }
+    var converted = convertTzsToCurrencyLocal(amountTzs, code || currentCurrency);
+    var dec = getCurrencyDecimals(code || currentCurrency);
+    return Number(converted || 0).toLocaleString('en', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+  }
+
+  function ensureSelectHasCurrencyOption(select, code) {
+    if (!select || select.querySelector('option[value="' + code + '"]')) return;
+    var c = getCurrencyByCode(code);
+    if (!c) return;
+    var opt = document.createElement('option');
+    opt.value = c.code;
+    opt.textContent = c.code + ' — ' + c.name;
+    select.appendChild(opt);
+  }
+
+  function populateCurrencySelect(select, compact) {
+    if (!select || select.dataset.currenciesPopulated === '1') return;
+    select.innerHTML = '';
+    VILLAGE_FIAT_CURRENCIES.slice().sort(function (a, b) {
+      return a.code.localeCompare(b.code);
+    }).forEach(function (c) {
+      var option = document.createElement('option');
+      option.value = c.code;
+      option.textContent = compact ? c.code : (c.code + ' — ' + c.name);
+      select.appendChild(option);
+    });
+    select.dataset.currenciesPopulated = '1';
+  }
+
+  function syncCurrencySelects() {
+    var globalSel = document.getElementById('global-currency-select');
+    if (globalSel && globalSel.value !== currentCurrency) globalSel.value = currentCurrency;
+    var marketSel = document.getElementById('marketGlobalCurrencySelect');
+    if (marketSel) {
+      ensureSelectHasCurrencyOption(marketSel, currentCurrency);
+      marketSel.value = currentCurrency;
+    }
+  }
+
+  function updateFeedMarketCards() {
+    document.querySelectorAll('.market-card[data-price-tzs]').forEach(function (card) {
+      var tzs = parseInt(card.getAttribute('data-price-tzs'), 10);
+      if (!isFinite(tzs)) return;
+      var priceEl = card.querySelector('.market-card__price');
+      var curEl = card.querySelector('.market-card__currency');
+      if (priceEl) priceEl.textContent = formatAmountForCurrency(tzs, currentCurrency);
+      if (curEl) curEl.textContent = currentCurrency;
+    });
+  }
+
+  function updateCurrencyLabels() {
+    document.querySelectorAll('.listing-panel__currency-tag').forEach(function (el) {
+      el.textContent = currentCurrency;
+    });
+    ['payDepositCurrencyLabel', 'paySendCurrencyLabel', 'paySwapCurrencyLabel'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.textContent = currentCurrency;
+    });
+  }
+
+  function refreshAllPricingDisplays() {
+    mergeFxExtensions();
+    global.VillageAppSettings = global.VillageAppSettings || {};
+    global.VillageAppSettings.currency = currentCurrency;
+    if (global.VillageAppSettings.wallet) global.VillageAppSettings.wallet.currency = currentCurrency;
+    if (global.villageMarketState) global.villageMarketState.currency = currentCurrency;
+    if (global.villagePayState) global.villagePayState.displayCurrency = currentCurrency;
+
+    syncCurrencySelects();
+
+    if (typeof global.onMarketGlobalCurrencyChange === 'function') {
+      global.onMarketGlobalCurrencyChange(currentCurrency);
+    } else {
+      if (typeof global.renderMarketGrid === 'function') global.renderMarketGrid();
+      if (typeof global.updateMarketCartBar === 'function') global.updateMarketCartBar();
+    }
+
+    if (typeof global.renderPayWalletHero === 'function') global.renderPayWalletHero();
+    updateFeedMarketCards();
+    updateCurrencyLabels();
+
+    document.dispatchEvent(new CustomEvent('village:currency-changed', { detail: { currency: currentCurrency } }));
+  }
+
+  function setGlobalCurrency(code, options) {
+    var c = getCurrencyByCode(code);
+    if (!c) return;
+    currentCurrency = c.code;
+    try { localStorage.setItem(CURRENCY_STORAGE_KEY, currentCurrency); } catch (e) { /* ignore */ }
+    if (global.CitizenState && typeof global.CitizenState.setCurrency === 'function') {
+      global.CitizenState.setCurrency(currentCurrency);
+    }
+    refreshAllPricingDisplays();
+    if (!options || !options.silent) {
+      console.log('[VillageCurrency] Display currency switched to:', currentCurrency);
+    }
+  }
+
+  function initGlobalCurrencySelect() {
+    var select = document.getElementById('global-currency-select');
+    if (!select || select.dataset.currencyBound === '1') return;
+
+    populateCurrencySelect(select, false);
+    currentCurrency = loadStoredCurrency();
+    VILLAGE_DEFAULT_CURRENCY = currentCurrency;
+    if (select.querySelector('option[value="' + currentCurrency + '"]')) {
+      select.value = currentCurrency;
+    } else {
+      select.value = VILLAGE_DEFAULT_CURRENCY;
+      currentCurrency = VILLAGE_DEFAULT_CURRENCY;
+    }
+
+    select.dataset.currencyBound = '1';
+    select.addEventListener('change', function () {
+      setGlobalCurrency(select.value || VILLAGE_DEFAULT_CURRENCY);
+    });
+
+    var marketSel = document.getElementById('marketGlobalCurrencySelect');
+    if (marketSel && marketSel.dataset.currenciesPopulated !== '1') {
+      populateCurrencySelect(marketSel, true);
+    }
+
+    mergeFxExtensions();
+    refreshAllPricingDisplays();
+    console.log('[VillageCurrency] Global fiat selector ready —', VILLAGE_FIAT_CURRENCIES.length, 'currencies (sovereign default:', currentCurrency + ').');
+  }
+
+  function initCitizenSovereignty() {
+    if (!global.CitizenState) return Promise.resolve();
+    return global.CitizenState.hydrate().then(function () {
+      if (global.CitizenLedger) return global.CitizenLedger.open();
+    }).then(function () {
+      global.CitizenState.syncCitizenTags();
+      console.log('[VillageApp] Citizen sovereignty engine online.');
+    });
+  }
+
   var VILLAGE_COUNTRIES = [
     { code: 'AF', name: 'Afghanistan' },
     { code: 'AL', name: 'Albania' },
@@ -833,7 +1266,7 @@
     { code: 'ZW', name: 'Zimbabwe' }
   ];
 
-  var VILLAGE_DEFAULT_COUNTRY = 'TZ';
+  var VILLAGE_DEFAULT_COUNTRY = '';
 
   function initCountrySelect() {
     var select = document.getElementById('country-select');
@@ -842,7 +1275,8 @@
     var placeholder = document.createElement('option');
     placeholder.value = '';
     placeholder.disabled = true;
-    placeholder.textContent = 'Select country';
+    placeholder.selected = true;
+    placeholder.textContent = 'Select your nation';
 
     select.innerHTML = '';
     select.appendChild(placeholder);
@@ -854,34 +1288,55 @@
       select.appendChild(option);
     });
 
-    if (select.querySelector('option[value="' + VILLAGE_DEFAULT_COUNTRY + '"]')) {
-      select.value = VILLAGE_DEFAULT_COUNTRY;
+    var preferred = global.CitizenState ? global.CitizenState.getCountry() : VILLAGE_DEFAULT_COUNTRY;
+    if (preferred && select.querySelector('option[value="' + preferred + '"]')) {
+      select.value = preferred;
+    }
+
+    if (!select.dataset.citizenCountryBound) {
+      select.dataset.citizenCountryBound = '1';
+      select.addEventListener('change', function () {
+        if (global.CitizenState && select.value) {
+          global.CitizenState.setCountry(select.value);
+        }
+      });
     }
 
     select.dataset.countriesPopulated = '1';
-    console.log('[VillageApp] Country dropdown populated with', VILLAGE_COUNTRIES.length, 'nations (default: Tanzania).');
+    console.log('[VillageApp] Nation registry populated —', VILLAGE_COUNTRIES.length, 'sovereign states (no centralized default).');
   }
 
   function bootstrap() {
     global.VillageModules = global.VillageModules || {};
     currentLang = loadStoredLanguage();
-    initLanguageSelector();
-    initCountrySelect();
-    applyTranslations();
-    initTopNavigation();
-    initViewPanelBindings();
-    switchToView('social');
-
-    console.log('[VillageApp] i18n engine ready —', SUPPORTED.length, 'languages loaded.');
-    document.dispatchEvent(new CustomEvent('village:modules-ready'));
+    initCitizenSovereignty().then(function () {
+      initLanguageSelector();
+      initGlobalCurrencySelect();
+      initCountrySelect();
+      applyTranslations();
+      initTopNavigation();
+      initViewPanelBindings();
+      switchToView('social');
+      console.log('[VillageApp] Sovereign citizen engine ready —', SUPPORTED.length, 'languages loaded.');
+      document.dispatchEvent(new CustomEvent('village:modules-ready'));
+    });
   }
 
   function onAppReady() {
-    initTopNavigation();
-    initLanguageSelector();
-    initCountrySelect();
-    applyTranslations();
-    initViewPanelBindings();
+    initCitizenSovereignty().then(function () {
+      initTopNavigation();
+      initLanguageSelector();
+      initGlobalCurrencySelect();
+      initCountrySelect();
+      mergeFxExtensions();
+      refreshAllPricingDisplays();
+      applyTranslations();
+      initViewPanelBindings();
+      syncProfileDropdownMeta();
+      if (global.VillageWallet && typeof global.VillageWallet.activate === 'function') {
+        global.VillageWallet.activate();
+      }
+    });
   }
 
   global.VillageI18n = {
@@ -907,13 +1362,32 @@
     showChatPanel: showChatPanel,
     showWalletPanel: showWalletPanel,
     switchToView: switchToView,
-    initCountrySelect: initCountrySelect
+    initCountrySelect: initCountrySelect,
+    initGlobalCurrencySelect: initGlobalCurrencySelect,
+    setGlobalCurrency: setGlobalCurrency,
+    initCitizenSovereignty: initCitizenSovereignty,
+    syncCitizenUI: syncProfileDropdownMeta
   };
 
   global.VillageCountries = {
     list: VILLAGE_COUNTRIES,
     defaultCode: VILLAGE_DEFAULT_COUNTRY,
     init: initCountrySelect
+  };
+
+  global.VillageCurrency = {
+    list: VILLAGE_FIAT_CURRENCIES,
+    fxFallback: VILLAGE_CURRENCY_FX_FALLBACK,
+    defaultCode: VILLAGE_DEFAULT_CURRENCY,
+    getCurrent: function () { return currentCurrency; },
+    getByCode: getCurrencyByCode,
+    getSymbol: getCurrencySymbol,
+    convertFromTzs: convertTzsToCurrencyLocal,
+    formatFromTzs: formatAmountForCurrency,
+    set: setGlobalCurrency,
+    refresh: refreshAllPricingDisplays,
+    mergeFx: mergeFxExtensions,
+    init: initGlobalCurrencySelect
   };
 
   document.addEventListener('village:app-ready', onAppReady);

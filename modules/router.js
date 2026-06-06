@@ -1,5 +1,5 @@
 /**
- * Village sidebar view router — delegates to VillageViewManager for isolation.
+ * Village sidebar view router — sovereign citizen navigation (decentralized).
  */
 (function (global) {
   'use strict';
@@ -11,37 +11,46 @@
     },
     marketplace: {
       title: 'Village Marketplace',
-      subtitle: 'Buy and sell across your community — prices in TZS or USD by region.'
+      subtitle: 'Peer-to-peer commerce across sovereign citizen nodes — prices in your chosen fiat.'
     },
     pay: {
-      title: 'Village Pay Dashboard',
-      subtitle: 'Global Wallet — send, deposit, swap, and track governance fees.'
+      title: 'Citizen Wallet',
+      subtitle: 'Sovereign ledger — deposit, P2P send, swap, and localized fee routing.'
     },
     market: {
       title: 'Village Market',
-      subtitle: 'Curated regional storefronts, cart checkout, and vendor trust.'
+      subtitle: 'Curated citizen storefronts, cart checkout, and peer trust signals.'
     },
     delivery: {
       title: 'Village Delivery',
-      subtitle: 'Track shipments and courier routes in real time.'
+      subtitle: 'Track shipments and courier routes across citizen nodes.'
     },
     'market-analysis': {
       title: 'Market Analysis',
-      subtitle: 'Live pricing indices and demand signals for merchants.'
+      subtitle: 'Live pricing indices and demand signals from citizen merchants.'
     },
     jobs: {
       title: 'Village Jobs',
-      subtitle: 'Discover gigs and hire talent across your community.'
+      subtitle: 'Discover gigs and hire talent across your citizen network.'
     },
     chat: {
       title: 'Messages',
-      subtitle: 'Encrypted one-on-one and group conversations.'
+      subtitle: 'Encrypted one-on-one and group conversations between citizens.'
     }
   };
 
-  var MERCHANT_ONLY = ['delivery', 'market-analysis'];
   var initialized = false;
   var deps = {};
+
+  function getProfileType() {
+    if (global.CitizenState && typeof global.CitizenState.getProfileType === 'function') {
+      return global.CitizenState.getProfileType();
+    }
+    if (typeof deps.getAccountProfileType === 'function') {
+      return deps.getAccountProfileType();
+    }
+    return 'citizen';
+  }
 
   function setMainCopy(view) {
     if (global.VillageI18n && typeof global.VillageI18n.setMainViewI18n === 'function') {
@@ -69,19 +78,14 @@
     });
   }
 
-  function navigate(view) {
-    console.log('[VillageRouter] Navigating to view:', view);
-
-    var profileType = typeof deps.getAccountProfileType === 'function'
-      ? deps.getAccountProfileType()
-      : 'citizen';
-
-    if (MERCHANT_ONLY.indexOf(view) !== -1 && profileType !== 'merchant') {
-      if (typeof deps.showToast === 'function') {
-        deps.showToast('Switch to Merchant Account to access business utilities');
-      }
-      return;
+  function activateModule(view) {
+    if (global.VillageModules && global.VillageModules[view] && typeof global.VillageModules[view].activate === 'function') {
+      global.VillageModules[view].activate();
     }
+  }
+
+  function navigate(view) {
+    console.log('[VillageRouter] Sovereign navigation →', view, '(profile:', getProfileType() + ')');
 
     if (global.VillageViewManager && typeof global.VillageViewManager.switchTo === 'function') {
       global.VillageViewManager.switchTo(view);
@@ -89,13 +93,18 @@
 
     setActiveNav(view);
     setMainCopy(view);
+    activateModule(view);
 
     if (view === 'chat' && typeof global.openChatWindow === 'function') {
       global.openChatWindow('sarah-kimani');
     }
 
-    if (view === 'pay' && typeof global.initVillagePayHub === 'function') {
-      global.initVillagePayHub();
+    if (view === 'pay') {
+      if (global.VillageWallet && typeof global.VillageWallet.activate === 'function') {
+        global.VillageWallet.activate();
+      } else if (typeof global.initVillagePayHub === 'function') {
+        global.initVillagePayHub();
+      }
     }
 
     if (view === 'market' && typeof global.initVillageMarketHub === 'function') {
@@ -124,7 +133,13 @@
       });
     });
 
-    console.log('[VillageRouter] Sidebar navigation router initialized.');
+    if (global.CitizenState && typeof global.CitizenState.hydrate === 'function') {
+      global.CitizenState.hydrate().then(function () {
+        console.log('[VillageRouter] Citizen state synchronized for routing.');
+      });
+    }
+
+    console.log('[VillageRouter] Decentralized citizen router initialized.');
     navigate('social');
   }
 
@@ -132,6 +147,7 @@
     init: init,
     navigate: navigate,
     syncViewCopy: syncViewCopy,
-    VIEW_COPY: VIEW_COPY
+    VIEW_COPY: VIEW_COPY,
+    getProfileType: getProfileType
   };
 })(window);
