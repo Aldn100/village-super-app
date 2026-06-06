@@ -1,0 +1,64 @@
+{
+  "users_collection": {
+    "description": "Stores core profile, security, and account preferences for all Village citizens.",
+    "schema": {
+      "user_id": "String (Unique Identifier, Auto-generated)",
+      "full_name": "String",
+      "email": "String (Unique, Verified)",
+      "phone_number": "String (With Global Country Code)",
+      "account_created_at": "Timestamp",
+      "last_login_at": "Timestamp",
+      "profile_picture_url": "String (Cloud Storage Link)",
+      "bio": "String (Max 160 characters)",
+      "location": {
+        "current_country": "String",
+        "current_city": "String",
+        "geo_point": "Latitude/Longitude Object (For Uber/Delivery tracking)"
+      },
+      "account_type": "String (Options: Citizen, Merchant, Driver, Admin)",
+      "security_settings": {
+        "two_factor_enabled": "Boolean",
+        "kyc_verified": "Boolean"
+      },
+      "preferences": {
+        "default_currency": "String (e.g., TZS, USD, BTC)",
+        "language": "String (Default: English)"
+      }
+    }
+  },
+
+  "messages_collection": {
+    "description": "Handles real-time peer-to-peer and group communications.",
+    "schema": {
+      "chat_id": "String (Unique combination of sender_id and receiver_id)",
+      "sender_id": "String (References user_id)",
+      "receiver_id": "String (References user_id)",
+      "message_body": "Text/String (Encrypted)",
+      "attachment_url": "String (Null if text only, holds image/video link)",
+      "sent_timestamp": "Timestamp",
+      "is_read": "Boolean"
+    }
+  },
+
+  "posts_collection": {
+    "description": "Powers the social feed for media sharing, micro-blogging, and marketplace discovery.",
+    "schema": {
+      "post_id": "String (Unique Identifier)",
+      "author_id": "String (References user_id)",
+      "content_type": "String (Options: Text, Image, Video, Marketplace_Item)",
+      "text_content": "Text",
+      "media_urls": "Array of Strings (Cloud Storage Links)",
+      "created_at": "Timestamp",
+      "engagement_metrics": {
+        "likes_count": "Integer",
+        "shares_count": "Integer",
+        "comments_count": "Integer"
+      },
+      "marketplace_meta": {
+        "is_for_sale": "Boolean",
+        "price": "Float (Null if standard social post)",
+        "currency": "String"
+      }
+    }
+  }
+}
